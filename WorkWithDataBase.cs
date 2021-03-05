@@ -10,15 +10,20 @@ namespace DataBase
     {
         static void Main(string[] args)
         {
-            Database db = new Database();
-            db.Operate();
+            Database dataBase = new Database();
+            dataBase.Operate();
         }
     }
+
     class Database 
     {
         private List<Player> _players;
 
-        public Database() { _players = new List<Player>(); }
+        public Database() 
+        { 
+            _players = new List<Player>(); 
+        }
+
         public void Operate() 
         {
             bool isWorking = true;
@@ -43,12 +48,10 @@ namespace DataBase
                         AddPlayer();
                         break;
                     case "2":
-                        if (_players.Count > 0)
-                            ShowAllPlayers();
+                        ShowAllPlayers();
                         break;
                     case "3":
-                        if (_players.Count > 0)
-                            BannPlayer();
+                        BannPlayer();
                         break;
                     case "4":
                         if (_players.Count > 0)
@@ -98,45 +101,66 @@ namespace DataBase
 
         private void ShowAllPlayers() 
         {
-            foreach (var player in _players)
+            if (_players.Count > 0)
             {
-                player.ShowInfo();
+                foreach (var player in _players)
+                {
+                    player.ShowInfo();
+                }
+                Console.ReadKey();
             }
-            Console.ReadKey();
+            else
+            {
+                Console.WriteLine("База данных пуста");
+            } 
         }
 
         private void BannPlayer() 
         {
-            Console.WriteLine("Введите id игрока которого нужно забанить");
-            int id = Convert.ToInt32(Console.ReadLine());
+            if (_players.Count > 0) 
+            {
+                Console.WriteLine("Введите id игрока которого нужно забанить");
+                int id = Convert.ToInt32(Console.ReadLine());
 
-            Console.WriteLine("На сколько часов забанить игрока?");
-            double time = Convert.ToDouble(Console.ReadLine());
+                Console.WriteLine("На сколько часов забанить игрока?");
+                double time = Convert.ToDouble(Console.ReadLine());
 
-            Player banningPlayer = FindPlayer(id);
-            banningPlayer.Bann(time);
+                Player banningPlayer = FindPlayer(id);
+                banningPlayer.Bann(time);
 
-            Console.WriteLine($"Игрок с ником {banningPlayer.Nickname} забанен");
-            Console.ReadKey();
+                Console.WriteLine($"Игрок с ником {banningPlayer.Nickname} забанен");
+                Console.ReadKey();
+            }
+            else
+            {
+                Console.WriteLine("База данных пуста");
+            }
         }
+
         private void UnbannPlayer() 
         {
-            Console.WriteLine("Введите id игрока которого нужно разбанить");
-            int id = Convert.ToInt32(Console.ReadLine());
+            if (_players.Count > 0) 
+            {
+                Console.WriteLine("Введите id игрока которого нужно разбанить");
+                int id = Convert.ToInt32(Console.ReadLine());
 
 
-            Player banningPlayer = FindPlayer(id);
-            banningPlayer.UnBann();
+                Player banningPlayer = FindPlayer(id);
+                banningPlayer.UnBann();
 
-            Console.WriteLine($"Игрок с ником {banningPlayer.Nickname} разбанен");
-            Console.ReadKey();
+                Console.WriteLine($"Игрок с ником {banningPlayer.Nickname} разбанен");
+                Console.ReadKey();
+            }
+            else
+            {
+                Console.WriteLine("База данных пуста");
+            }
         }
-
     }
 
     class Player 
     {
-        private static int count = 1;
+        private static int counter = 1;
         public int ID { get; private set; }
         public string Nickname { get; private set; }
         public int Level { get; private set; }
@@ -145,11 +169,11 @@ namespace DataBase
 
         public Player(string nickname, int level) 
         {
-            ID = count;
+            ID = counter;
             Nickname = nickname;
             Level = level;
             isBanned = false;
-            count++;
+            counter++;
         }
 
         public void ShowInfo()
@@ -174,6 +198,7 @@ namespace DataBase
                 Console.ReadKey();
             }
         }
+
         public void UnBann() 
         {
             isBanned = false;

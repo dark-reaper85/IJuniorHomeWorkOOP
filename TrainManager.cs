@@ -159,7 +159,7 @@ namespace DirectionConfigurator
             if (_directionCreated && _ticketsAreSold)
             {
                 int carriageNumber = 0;
-                while (_passengerCount <= _trainSeatsCount)
+                while (_passengerCount >= _trainSeatsCount)
                 {
                     _trainSeatsCount += _carriages[carriageNumber].SeatsCount;
                     carriageNumber++;

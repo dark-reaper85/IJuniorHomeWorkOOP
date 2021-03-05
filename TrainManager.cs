@@ -10,30 +10,7 @@ namespace DirectionConfigurator
     {
         static void Main(string[] args)
         {
-            List<Carriage> carriages = new List<Carriage> 
-            {
-                new Carriage(10),
-                new Carriage(15),
-                new Carriage(5),
-                new Carriage(7),
-                new Carriage(20),
-                new Carriage(14),
-                new Carriage(30),
-                new Carriage(42),
-            };
-
-            List<string> Cities = new List<string>
-            {
-                "Москва",
-                "Санкт-Петербург",
-                "Владивосток",
-                "Псков",
-                "Волгоград",
-                "Тверь",
-                "Барнаул"
-            };
-
-            Configurator configurator = new Configurator(carriages, Cities);
+            TrainConfigurator configurator = new TrainConfigurator();
 
             bool isWorking = true;
             while (isWorking)
@@ -84,25 +61,50 @@ namespace DirectionConfigurator
         }
     }
 
-    class Configurator
+    class TrainConfigurator
     {
-        private List<Carriage> _carriages;
-        public List<string> Cities { get; private set; }
+        private List<Carriage> _carriages = new List<Carriage>
+        {
+            new Carriage(10),
+            new Carriage(15),
+            new Carriage(5),
+            new Carriage(7),
+            new Carriage(20),
+            new Carriage(14),
+            new Carriage(30),
+            new Carriage(42),
+        };
+
+        public List<string> Cities 
+        {
+            get 
+            {
+                return Cities;
+            }
+
+            private set 
+            {
+                Cities = new List<string>
+                {
+                "Москва",
+                "Санкт-Петербург",
+                "Владивосток",
+                "Псков",
+                "Волгоград",
+                "Тверь",
+                "Барнаул"
+                };
+            } 
+        }
 
         private string _startCity;
         private string _endCity;
         private bool _directionCreated;
         private int _passengerCount;
-        private bool _ticketsSold;
+        private bool _ticketsAreSold;
         private bool _trainCreated;
         private int _trainSeatsCount;
         private bool _allReady;
-
-        public Configurator(List<Carriage> carriages, List<string> cities)
-        {
-            _carriages = carriages;
-            Cities = cities;
-        }
 
         public void ShowCities() 
         {
@@ -116,20 +118,20 @@ namespace DirectionConfigurator
         public void CreateDirection() 
         {
             ShowCities();
-            Console.WriteLine("Введите номер город отправления");
-            int i = Convert.ToInt32(Console.ReadLine());
-            Console.WriteLine("Введите номер город прибытия");
-            int j = Convert.ToInt32(Console.ReadLine());
+            Console.WriteLine("Введите номер города отправления");
+            int startSityNumber = Convert.ToInt32(Console.ReadLine());
+            Console.WriteLine("Введите номер города прибытия");
+            int endSityNumber = Convert.ToInt32(Console.ReadLine());
 
-            if (i < 0 || i > Cities.Count - 1 || j < 0 || j > Cities.Count - 1)
+            if (startSityNumber < 0 || startSityNumber > Cities.Count - 1 || endSityNumber < 0 || endSityNumber > Cities.Count - 1)
             {
                 Console.WriteLine("Введен неверный номер города");
                 Console.ReadKey();
             }
             else
             {
-                _startCity = Cities[i];
-                _endCity = Cities[j];
+                _startCity = Cities[startSityNumber];
+                _endCity = Cities[endSityNumber];
                 Console.WriteLine($"Направление {_startCity} - {_endCity} создано");
                 _directionCreated = true;
                 Console.ReadKey();
@@ -142,7 +144,7 @@ namespace DirectionConfigurator
             {
                 Random rand = new Random();
                 _passengerCount = rand.Next(5, 100);
-                _ticketsSold = true;
+                _ticketsAreSold = true;
             }
             else
             {
@@ -154,20 +156,20 @@ namespace DirectionConfigurator
         public void CreateTrain() 
         {
             _trainSeatsCount = 0;
-            if (_directionCreated && _ticketsSold)
+            if (_directionCreated && _ticketsAreSold)
             {
-                for (int i = 0; i < _carriages.Count; i++)
+                int carriageNumber = 0;
+                while (_passengerCount <= _trainSeatsCount)
                 {
-                    _trainSeatsCount += _carriages[i].SeatsCount;
-                    if (_passengerCount < _trainSeatsCount)
-                    {
-                        _trainCreated = true;
-                        _allReady = true;
-                        Console.WriteLine("Поезд сформирован");
-                        Console.ReadKey();
-                        break;
-                    }
+                    _trainSeatsCount += _carriages[carriageNumber].SeatsCount;
+                    carriageNumber++;
                 }
+
+                _trainCreated = true;
+                _allReady = true;
+
+                Console.WriteLine("Поезд сформирован");
+                Console.ReadKey();
             }
             else
             {
@@ -178,11 +180,11 @@ namespace DirectionConfigurator
 
         public void ShowInfo() 
         {
-            if (_directionCreated && _ticketsSold && _trainCreated)
+            if (_directionCreated && _ticketsAreSold && _trainCreated)
             {
                 Console.WriteLine($"Направление {_startCity} - {_endCity} сформировано. Поезд готов к отправке. \nПродано билетов {_passengerCount}. \nВсего мест в поезде {_trainSeatsCount}");
             }
-            else if (_directionCreated && _ticketsSold)
+            else if (_directionCreated && _ticketsAreSold)
             {
                 Console.WriteLine($"Направление {_startCity} - {_endCity} сформировано. \nПродано билетов {_passengerCount}. Сформируйте поезд");
             }
@@ -201,7 +203,7 @@ namespace DirectionConfigurator
             if (_allReady)
             {
                 _directionCreated = false;
-                _ticketsSold = false;
+                _ticketsAreSold = false;
                 _trainCreated = false;
                 Console.WriteLine($"Поезд {_startCity} - {_endCity} отправлен.");
                 Console.ReadKey();

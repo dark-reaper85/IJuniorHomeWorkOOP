@@ -18,14 +18,14 @@ namespace WorkWithProperties
     class Player 
     {
         public char Avatar { get; private set; }
-        public int PosX { get; private set; }
-        public int PosY { get; private set; }
+        public int PositionX { get; private set; }
+        public int PositionY { get; private set; }
 
         public Player(char avatar, int posX, int posY) 
         {
             Avatar = avatar;
-            PosX = posX;
-            PosY = posY;
+            PositionX = posX;
+            PositionY = posY;
         }
     }
 
@@ -33,7 +33,7 @@ namespace WorkWithProperties
     {
         public static void DrawPlayer(Player player) 
         {
-            Console.SetCursorPosition(player.PosY, player.PosX);
+            Console.SetCursorPosition(player.PositionY, player.PositionX);
             Console.Write(player.Avatar);
         }
     }

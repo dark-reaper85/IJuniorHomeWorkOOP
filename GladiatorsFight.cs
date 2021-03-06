@@ -7,115 +7,167 @@ using System.Threading.Tasks;
 
 namespace GladiatorFight
 {
-    class GaldiatorsFight
+    class GladiatorsFight
     {
         static void Main(string[] args)
         {
-            List<Gladiator> gladiators = new List<Gladiator>
-            {
-                new Warrior("Боб", "Мощный удар"),
-                new Archer("Робин", "Powershot"),
-                new Mage("Гендальф", "FireBall"),
-                new Rogue("Фесс", "Потрошение"),
-                new Barbarian("Кратос", "Размашистый удар"),
-            };
+            BattleGround battleGround = new BattleGround();
 
-            BattleGround battleGround = new BattleGround(gladiators);
-
-            battleGround.ShowGladiators();
-            Console.WriteLine("Выберите первого гладиатора");
-            int i = Convert.ToInt32(Console.ReadLine());
-            Console.WriteLine("Выберите второго гладиатора");
-            int j = Convert.ToInt32(Console.ReadLine());
-            Gladiator gladiator1 = battleGround.Gladiators[i-1];
-            Gladiator gladiator2 = battleGround.Gladiators[j-1];
-
-            while (gladiator1.Health > 0 && gladiator2.Health > 0)
-            {
-                Random rand = new Random();
-                battleGround.Fight(gladiator1, gladiator2, rand);
-
-                Thread.Sleep(500);
-            }
-
-            if (gladiator1.Health < 0)
-            {
-                Console.WriteLine($"{gladiator2.Name} победил \n{gladiator2.ShowInfo()}");
-                Console.ReadKey();
-            }
-            else 
-            {
-                Console.WriteLine($"{gladiator1.Name} победил \n{gladiator1.ShowInfo()}");
-                Console.ReadKey();
-            }
+            battleGround.OrganizeBattle();
         }
     }
 
     class BattleGround 
     {
-        public List<Gladiator> Gladiators { get; private set; }
+        private Gladiator _firstGladiator;
+        private Gladiator _secondGladiator;
 
-        public BattleGround(List<Gladiator> gladiators) 
+        private List<Gladiator> _gladiators = new List<Gladiator>
         {
-            Gladiators = gladiators;
-        }
+             new Warrior("Боб", "Мощный удар"),
+             new Archer("Робин", "Powershot"),
+             new Mage("Гендальф", "FireBall"),
+             new Rogue("Фесс", "Потрошение"),
+             new Barbarian("Кратос", "Размашистый удар"),
+        };
 
-        public void ShowGladiators() 
+        public void OrganizeBattle() 
         {
-            for (int i = 0; i < Gladiators.Count; i++)
+            bool fight = true;
+            while (fight)
             {
-                Console.WriteLine($"{i+1} - {Gladiators[i].ShowInfo()}");
+                Console.Clear();
+                ShowGladiators();
+                SelectGladiator();
+
+                Console.SetCursorPosition(0, 10);
+
+                if (_firstGladiator != null && _secondGladiator != null )
+                {
+                    while (_firstGladiator.Health > 0 && _secondGladiator.Health > 0)
+                    {
+                        Random rand = new Random();
+                        Fight(_firstGladiator, _secondGladiator, rand);
+
+                        Thread.Sleep(500);
+                    }
+
+                    if (_firstGladiator.Health < 0 && _gladiators.Count > 1)
+                    {
+                        Console.WriteLine($"{_secondGladiator.Name} победил \n{_secondGladiator.ShowInfo()}");
+                        _gladiators.Remove(_firstGladiator);
+                        Console.ReadKey();
+                    }
+                    else if (_secondGladiator.Health < 0 && _gladiators.Count > 1)
+                    {
+                        Console.WriteLine($"{_firstGladiator.Name} победил \n{_firstGladiator.ShowInfo()}");
+                        _gladiators.Remove(_secondGladiator);
+                        Console.ReadKey();
+                    }
+
+                    if (_gladiators.Count == 1)
+                    {
+                        Console.Clear();
+                        Console.WriteLine($"{_gladiators[0].Name} Признан абсолютным чемпионом!!! \n{_gladiators[0].ShowInfo()}");
+                        fight = false;
+                        Console.ReadKey();
+                    }
+                }
             }
         }
 
-        public void Fight(Gladiator gladiator1, Gladiator gladiator2, Random random) 
+        public void ShowGladiators()
         {
-                switch (random.Next(1, 5))
-                {
-                    case 1:
-                        GladiatorsFight(gladiator1, gladiator2, random);
-                        break;
-                    case 2:
-                        GladiatorsFight(gladiator2, gladiator1, random);
-                        break;
-                    default:
-                        Console.WriteLine("Бойцы обходят друг друга.");
-                        break;
-                }
+            for (int i = 0; i < _gladiators.Count; i++)
+            {
+                Console.WriteLine($"{i + 1} - {_gladiators[i].ShowInfo()}");
+            }
         }
 
-        private void GladiatorsFight(Gladiator gladiator1, Gladiator gladiator2, Random rand1) 
+        private void SelectGladiator() 
         {
-                switch (rand1.Next(1, 3))
+            Console.WriteLine("Выберите первого гладиатора");
+            string userInput = Console.ReadLine();
+            if (int.TryParse(userInput, out int firstGladiatorNumber) && firstGladiatorNumber > 0 && firstGladiatorNumber <= _gladiators.Count)
+            {
+                _firstGladiator = _gladiators[firstGladiatorNumber - 1];
+                Console.WriteLine("Выберите второго гладиатора");
+                userInput = Console.ReadLine();
+                if (int.TryParse(userInput, out int secondGladiatorNumber) &&  secondGladiatorNumber > 0 && secondGladiatorNumber <= _gladiators.Count) 
                 {
-                    case 1:
-                        Console.WriteLine($"\n{gladiator1.Name} наносит урон {gladiator1.Attack()} по {gladiator2.Name}");
-                        gladiator2.TakeDamage(gladiator1.Attack());
-                        Console.WriteLine($"Здоровье {gladiator2.Name}: {gladiator2.Health}");
-                        break;
-                    case 2:
-                        Console.WriteLine($"\n{gladiator1.Name} применяет {gladiator1.SpecialAttackName} и наносит урон {gladiator1.SpecialAttack()} по {gladiator2.Name}");
-                        gladiator2.TakeDamage(gladiator1.SpecialAttack());
-                        Console.WriteLine($"Здоровье {gladiator2.Name}: {gladiator2.Health}");
-                        break;
+                    if (firstGladiatorNumber == secondGladiatorNumber)
+                    {
+                        Console.WriteLine("Гладиатор не может сражаться сам с собой");
+                        _firstGladiator = null;
+                        Console.ReadKey();
+                    }
+                    else
+                    {
+                        _secondGladiator = _gladiators[secondGladiatorNumber - 1];
+                    }
                 }
+                else
+                {
+                    Console.WriteLine("Ошибка ввода, или гладиатор не существует");
+                    Console.ReadKey();
+                }
+            }
+            else
+            {
+                Console.WriteLine("Ошибка ввода, или гладиатор не существует");
+                Console.ReadKey();
+            }
+        }
+
+        private void Fight(Gladiator gladiator1, Gladiator gladiator2, Random random) 
+        {
+            switch (random.Next(1, 5))
+            {
+                case 1:
+                    ChoseGladiatorAttack(gladiator1, gladiator2, random);
+                    break;
+                case 2:
+                    ChoseGladiatorAttack(gladiator2, gladiator1, random);
+                    break;
+                default:
+                    Console.WriteLine("Бойцы обходят друг друга.");
+                    break;
+            }
+        }
+
+        private void ChoseGladiatorAttack(Gladiator gladiator1, Gladiator gladiator2, Random rand1) 
+        {
+            switch (rand1.Next(1, 3))
+            {
+                case 1:
+                    Console.WriteLine($"\n{gladiator1.Name} наносит урон {gladiator1.Attack()} по {gladiator2.Name}");
+                    gladiator2.TakeDamage(gladiator1.Attack());
+                    Console.WriteLine($"Здоровье {gladiator2.Name}: {gladiator2.Health}");
+                    break;
+                case 2:
+                    Console.WriteLine($"\n{gladiator1.Name} применяет {gladiator1.SpecialAttackName} и наносит урон {gladiator1.SpecialAttack()} по {gladiator2.Name}");
+                    gladiator2.TakeDamage(gladiator1.SpecialAttack());
+                    Console.WriteLine($"Здоровье {gladiator2.Name}: {gladiator2.Health}");
+                    break;
+            }
         }
     }
 
     abstract class Gladiator 
     {
+        protected int Damage;
+
         public string Name { get; protected set; }
         public int Health { get; protected set; }
-        protected int Damage;
         public string SpecialAttackName { get; protected set; }
 
         public abstract void TakeDamage(int damage);
         public abstract string ShowInfo();
+        public abstract int SpecialAttack();
         public int Attack() 
         {
             return Damage;
         }
-        public abstract int SpecialAttack();
     }
 
     class Warrior : Gladiator

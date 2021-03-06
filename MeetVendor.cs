@@ -11,17 +11,8 @@ namespace MeetingVendor
         static void Main(string[] args)
         {
             Player player = new Player(10);
-            
-            List<Product> goods = new List<Product>();
-            goods.Add(new Product("Яблоко", 2));
-            goods.Add(new Product("Груша", 3));
-            goods.Add(new Product("Гранат", 5));
-            goods.Add(new Product("Огурец", 1));
-            goods.Add(new Product("Помидор", 2));
-            goods.Add(new Product("Лук", 1));
-            goods.Add(new Product("Хлеб", 5));
 
-            Vendor vendor = new Vendor(50, goods);
+            Vendor vendor = new Vendor();
 
             bool trading = true;
             while (trading)
@@ -31,27 +22,34 @@ namespace MeetingVendor
                 Console.WriteLine("2 - Посмотреть инвентарь");
                 Console.WriteLine("3 - Проверить свой баланс");
                 Console.WriteLine("4 - Выход из окна торговли\n");
-                
 
-                int userInput = Convert.ToInt32(Console.ReadLine());
+                string userInput = Console.ReadLine();
                 switch (userInput)
                 {
-                    case 1:
+                    case "1":
                         Console.WriteLine("\nСписок товаров:");
                         vendor.ShowAllGoods();
 
                         Console.WriteLine("Введите номер товара который хотите купить");
-                        int indexOfGood = Convert.ToInt32(Console.ReadLine());
-                        vendor.SellGood(player, indexOfGood);
+                        userInput = Console.ReadLine();
+                        if (int.TryParse(userInput, out int indexOfGood))
+                        {
+                            vendor.SellGood(player, indexOfGood);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ошибка ввода");
+                            Console.ReadKey();
+                        }
                         break;
-                    case 2:
+                    case "2":
                         player.ShowInventory();
                         break;
-                    case 3:
-                        Console.WriteLine("У вас " + player.Coins + "монет");
+                    case "3":
+                        Console.WriteLine("У вас " + player.Coins + " монет");
                         Console.ReadKey();
                         break;
-                    case 4:
+                    case "4":
                         trading = false;
                         break;
                     default:
@@ -64,73 +62,81 @@ namespace MeetingVendor
 
     class Vendor
     {
-        public int Balance { get; private set; }
-        public List<Product> Goods { get; private set; }
-
-        public Vendor(int balance, List<Product> goods) 
+        private List<Product> _goods = new List<Product>()
         {
-            Balance = balance;
-            Goods = goods;
-        }
+            new Product("Яблоко", 2),
+            new Product("Груша", 3),
+            new Product("Гранат", 5),
+            new Product("Огурец", 1),
+            new Product("Помидор", 2),
+            new Product("Лук", 1),
+            new Product("Хлеб", 5)
+        };
 
         public void SellGood(Player player, int indexOfGood) 
         {
-            if (indexOfGood < 0 || indexOfGood > Goods.Count - 1)
+            if (indexOfGood < 0 || indexOfGood > _goods.Count - 1)
             {
                 Console.WriteLine("Товар с таким номером отсутствует");
                 Console.ReadKey();
             }
-            else if (player.Coins < Goods[indexOfGood].Cost)
+            else if (player.Coins < _goods[indexOfGood].Cost)
             {
                 Console.WriteLine("У вас недостаточно средств");
                 Console.ReadKey();
             }
             else
             {
-                Balance += Goods[indexOfGood].Cost;
-                player.BuyProduct(Goods[indexOfGood]);
-                Goods.RemoveAt(indexOfGood);
+                player.BuyProduct(_goods[indexOfGood]);
+                Console.WriteLine($"{_goods[indexOfGood].Name} Куплено");
+                Console.ReadKey();
+                _goods.RemoveAt(indexOfGood);
             }
         }
 
         public void ShowAllGoods() 
         {
-            for (int i = 0; i < Goods.Count; i++)
+            for (int i = 0; i < _goods.Count; i++)
             {
-                Console.WriteLine(i + " " + Goods[i].ShowInfo()); 
+                Console.WriteLine(i + " " + _goods[i].ShowInfo()); 
             }
         }
-
-
     }
 
     class Player 
     {
         public int Coins { get; private set; }
-        public List<Product> Inventory;
+        private List<Product> _inventory;
 
         public Player(int coins) 
         {
             Coins = coins;
-            Inventory = new List<Product>();
+            _inventory = new List<Product>();
         }
+
         public void ShowInventory() 
         {
-            foreach (var product in Inventory)
+            if (_inventory.Count == 0)
             {
-                Console.WriteLine(product.ShowInfo());
+                Console.WriteLine("Инвентарь пуст");
+                Console.ReadKey();
             }
-            Console.ReadKey();
+            else
+            {
+                foreach (var product in _inventory)
+                {
+                    Console.WriteLine(product.ShowInfo());
+                }
+                Console.ReadKey();
+            }
         }
 
         public void BuyProduct(Product product) 
         {
             Coins -= product.Cost; 
-            Inventory.Add(product);
+            _inventory.Add(product);
         }
     }
-
-    
     
     class Product 
     {

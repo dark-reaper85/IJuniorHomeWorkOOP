@@ -75,27 +75,16 @@ namespace DirectionConfigurator
             new Carriage(42),
         };
 
-        public List<string> Cities 
+        private List<string> _cities = new List<string>
         {
-            get 
-            {
-                return Cities;
-            }
-
-            private set 
-            {
-                Cities = new List<string>
-                {
-                "Москва",
-                "Санкт-Петербург",
-                "Владивосток",
-                "Псков",
-                "Волгоград",
-                "Тверь",
-                "Барнаул"
-                };
-            } 
-        }
+            "Москва",
+            "Санкт-Петербург",
+            "Владивосток",
+            "Псков",
+            "Волгоград",
+            "Тверь",
+            "Барнаул"
+        };
 
         private string _startCity;
         private string _endCity;
@@ -108,9 +97,9 @@ namespace DirectionConfigurator
 
         public void ShowCities() 
         {
-            for (int i = 0; i < Cities.Count; i++)
+            for (int i = 0; i < _cities.Count; i++)
             {
-                Console.WriteLine(i + " - " + Cities[i]);
+                Console.WriteLine(i + " - " + _cities[i]);
             }
             Console.WriteLine();
         }
@@ -119,21 +108,36 @@ namespace DirectionConfigurator
         {
             ShowCities();
             Console.WriteLine("Введите номер города отправления");
-            int startSityNumber = Convert.ToInt32(Console.ReadLine());
-            Console.WriteLine("Введите номер города прибытия");
-            int endSityNumber = Convert.ToInt32(Console.ReadLine());
-
-            if (startSityNumber < 0 || startSityNumber > Cities.Count - 1 || endSityNumber < 0 || endSityNumber > Cities.Count - 1)
+            string userInput = Console.ReadLine();
+            if (int.TryParse(userInput, out int startCityNumber))
             {
-                Console.WriteLine("Введен неверный номер города");
-                Console.ReadKey();
+                Console.WriteLine("Введите номер города прибытия");
+                userInput = Console.ReadLine();
+                if (int.TryParse(userInput, out int endCityNumber)) 
+                {
+                    if (startCityNumber < 0 || startCityNumber > _cities.Count - 1 || endCityNumber < 0 || endCityNumber > _cities.Count - 1)
+                    {
+                        Console.WriteLine("Введен неверный номер города");
+                        Console.ReadKey();
+                    }
+                    else
+                    {
+                        _startCity = _cities[startCityNumber];
+                        _endCity = _cities[endCityNumber];
+                        Console.WriteLine($"Направление {_startCity} - {_endCity} создано");
+                        _directionCreated = true;
+                        Console.ReadKey();
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Ошибка ввода");
+                    Console.ReadKey();
+                }
             }
             else
             {
-                _startCity = Cities[startSityNumber];
-                _endCity = Cities[endSityNumber];
-                Console.WriteLine($"Направление {_startCity} - {_endCity} создано");
-                _directionCreated = true;
+                Console.WriteLine("Ошибка ввода");
                 Console.ReadKey();
             }
         }

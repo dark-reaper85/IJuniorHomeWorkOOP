@@ -14,8 +14,28 @@ namespace MeetingVendor
 
             Vendor vendor = new Vendor();
 
-            bool trading = true;
-            while (trading)
+            Shop newShop = new Shop(vendor, player);
+
+            newShop.Trading();
+        }
+    }
+
+    class Shop
+    {
+        private Vendor _vendor;
+        private Player _player;
+        private bool _trading;
+
+        public Shop(Vendor vendor, Player player) 
+        {
+            _vendor = vendor;
+            _player = player;
+            _trading = true;
+        }
+
+        public void Trading() 
+        {
+            while (_trading)
             {
                 Console.Clear();
                 Console.WriteLine("1 - Купить товар");
@@ -28,13 +48,13 @@ namespace MeetingVendor
                 {
                     case "1":
                         Console.WriteLine("\nСписок товаров:");
-                        vendor.ShowAllGoods();
+                        _vendor.ShowAllGoods();
 
                         Console.WriteLine("Введите номер товара который хотите купить");
                         userInput = Console.ReadLine();
                         if (int.TryParse(userInput, out int indexOfGood))
                         {
-                            vendor.SellGood(player, indexOfGood);
+                            _vendor.SellGood(_player, indexOfGood);
                         }
                         else
                         {
@@ -43,14 +63,14 @@ namespace MeetingVendor
                         }
                         break;
                     case "2":
-                        player.ShowInventory();
+                        _player.ShowInventory();
                         break;
                     case "3":
-                        Console.WriteLine("У вас " + player.Coins + " монет");
+                        Console.WriteLine("У вас " + _player.Coins + " монет");
                         Console.ReadKey();
                         break;
                     case "4":
-                        trading = false;
+                        _trading = false;
                         break;
                     default:
                         Console.WriteLine("Неизвестное действие");

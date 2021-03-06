@@ -19,9 +19,11 @@ namespace GladiatorFight
 
     class BattleGround 
     {
+        public Random _random;
         private Gladiator _firstGladiator;
         private Gladiator _secondGladiator;
 
+        
         private List<Gladiator> _gladiators = new List<Gladiator>
         {
              new Warrior("Боб", "Мощный удар"),
@@ -30,6 +32,11 @@ namespace GladiatorFight
              new Rogue("Фесс", "Потрошение"),
              new Barbarian("Кратос", "Размашистый удар"),
         };
+
+        public BattleGround()
+        {
+            _random = new Random();
+        }
 
         public void OrganizeBattle() 
         {
@@ -46,8 +53,7 @@ namespace GladiatorFight
                 {
                     while (_firstGladiator.Health > 0 && _secondGladiator.Health > 0)
                     {
-                        Random rand = new Random();
-                        Fight(_firstGladiator, _secondGladiator, rand);
+                        Fight(_firstGladiator, _secondGladiator);
 
                         Thread.Sleep(500);
                     }
@@ -88,46 +94,46 @@ namespace GladiatorFight
         {
             Console.WriteLine("Выберите первого гладиатора");
             string userInput = Console.ReadLine();
-            if (int.TryParse(userInput, out int firstGladiatorNumber) && firstGladiatorNumber > 0 && firstGladiatorNumber <= _gladiators.Count)
+            _firstGladiator = TakeGladiator(userInput);
+            if (_firstGladiator != null)
             {
-                _firstGladiator = _gladiators[firstGladiatorNumber - 1];
                 Console.WriteLine("Выберите второго гладиатора");
                 userInput = Console.ReadLine();
-                if (int.TryParse(userInput, out int secondGladiatorNumber) &&  secondGladiatorNumber > 0 && secondGladiatorNumber <= _gladiators.Count) 
-                {
-                    if (firstGladiatorNumber == secondGladiatorNumber)
-                    {
-                        Console.WriteLine("Гладиатор не может сражаться сам с собой");
-                        _firstGladiator = null;
-                        Console.ReadKey();
-                    }
-                    else
-                    {
-                        _secondGladiator = _gladiators[secondGladiatorNumber - 1];
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Ошибка ввода, или гладиатор не существует");
-                    Console.ReadKey();
-                }
+                _secondGladiator = TakeGladiator(userInput);
+            }
+
+            if (_firstGladiator != null && _secondGladiator != null && _firstGladiator.Name == _secondGladiator.Name)
+            {
+                Console.WriteLine("Гладиатор не может сражаться сам с собой");
+                _firstGladiator = null;
+                Console.ReadKey();
+            }
+        }
+
+        private Gladiator TakeGladiator(string userInput) 
+        {
+            if (int.TryParse(userInput, out int secondGladiatorNumber) && secondGladiatorNumber > 0 && secondGladiatorNumber <= _gladiators.Count)
+            {
+                
+                return _gladiators[secondGladiatorNumber - 1];
             }
             else
             {
                 Console.WriteLine("Ошибка ввода, или гладиатор не существует");
                 Console.ReadKey();
+                return null;
             }
         }
 
-        private void Fight(Gladiator gladiator1, Gladiator gladiator2, Random random) 
+        private void Fight(Gladiator gladiator1, Gladiator gladiator2) 
         {
-            switch (random.Next(1, 5))
+            switch (_random.Next(1, 5))
             {
                 case 1:
-                    ChoseGladiatorAttack(gladiator1, gladiator2, random);
+                    ChoseGladiatorAttack(gladiator1, gladiator2);
                     break;
                 case 2:
-                    ChoseGladiatorAttack(gladiator2, gladiator1, random);
+                    ChoseGladiatorAttack(gladiator2, gladiator1);
                     break;
                 default:
                     Console.WriteLine("Бойцы обходят друг друга.");
@@ -135,9 +141,9 @@ namespace GladiatorFight
             }
         }
 
-        private void ChoseGladiatorAttack(Gladiator gladiator1, Gladiator gladiator2, Random rand1) 
+        private void ChoseGladiatorAttack(Gladiator gladiator1, Gladiator gladiator2) 
         {
-            switch (rand1.Next(1, 3))
+            switch (_random.Next(1, 3))
             {
                 case 1:
                     Console.WriteLine($"\n{gladiator1.Name} наносит урон {gladiator1.Attack()} по {gladiator2.Name}");
@@ -156,6 +162,7 @@ namespace GladiatorFight
     abstract class Gladiator 
     {
         protected int Damage;
+        protected Random _random;
 
         public string Name { get; protected set; }
         public int Health { get; protected set; }
@@ -176,11 +183,11 @@ namespace GladiatorFight
 
         public Warrior(string name, string specialAttackName)
         {
-            Random rand = new Random();
+            _random = new Random();
             Name = name;
-            Health = rand.Next(100, 150);
-            Damage = rand.Next(10, 25);
-            _armor = rand.Next(5, 40);
+            Health = _random.Next(100, 150);
+            Damage = _random.Next(10, 25);
+            _armor = _random.Next(5, 40);
             SpecialAttackName = specialAttackName;
         }
 
@@ -191,8 +198,7 @@ namespace GladiatorFight
 
         public override int SpecialAttack()
         {
-            Random rand = new Random();
-            return Damage * rand.Next(2,5) ;
+            return Damage * _random.Next(2,5) ;
         }
 
         public override void TakeDamage(int damage)
@@ -205,10 +211,10 @@ namespace GladiatorFight
     {
         public Archer(string name, string specialAttackName)
         {
-            Random rand = new Random();
+            _random = new Random();
             Name = name;
-            Health = rand.Next(100, 120);
-            Damage = rand.Next(15, 40);
+            Health = _random.Next(100, 120);
+            Damage = _random.Next(15, 40);
             SpecialAttackName = specialAttackName;
         }
 
@@ -219,8 +225,7 @@ namespace GladiatorFight
 
         public override int SpecialAttack()
         {
-            Random rand = new Random();
-            return Damage * 2 * rand.Next(2, 5);
+            return Damage * 2 * _random.Next(2, 5);
         }
 
         public override void TakeDamage(int damage)
@@ -235,12 +240,12 @@ namespace GladiatorFight
 
         public Mage(string name, string specialAttackName)
         {
-            Random rand = new Random();
+            _random = new Random();
             Name = name;
-            Health = rand.Next(70, 120);
-            Damage = rand.Next(10, 25);
-            _mana = rand.Next(120, 150);
-            _specialAttackManaCost = rand.Next(15, 50);
+            Health = _random.Next(70, 120);
+            Damage = _random.Next(10, 25);
+            _mana = _random.Next(120, 150);
+            _specialAttackManaCost = _random.Next(15, 50);
             SpecialAttackName = specialAttackName;
         }
 
@@ -251,7 +256,6 @@ namespace GladiatorFight
 
         public override int SpecialAttack()
         {
-            Random rand = new Random();
             if (_mana < _specialAttackManaCost)
             {
                 return 0;
@@ -259,7 +263,7 @@ namespace GladiatorFight
             else
             {
                 _mana -= _specialAttackManaCost;
-                return Damage * rand.Next(3, 8);
+                return Damage * _random.Next(3, 8);
             }
         }
 
@@ -286,11 +290,11 @@ namespace GladiatorFight
 
         public Rogue(string name, string specialAttackName)
         {
-            Random rand = new Random();
+            _random = new Random();
             Name = name;
-            Health = rand.Next(70, 120);
-            Damage = rand.Next(15, 35);
-            _dodgeChance = rand.Next(20, 50);
+            Health = _random.Next(70, 120);
+            Damage = _random.Next(15, 35);
+            _dodgeChance = _random.Next(20, 50);
             SpecialAttackName = specialAttackName;
         }
 
@@ -301,13 +305,12 @@ namespace GladiatorFight
 
         public override int SpecialAttack()
         {
-            Random rand = new Random();
-            return Damage * rand.Next(3, 8);
+            return Damage * _random.Next(3, 8);
         }
+
         private bool IsDodged() 
         {
-            Random rand = new Random();
-            int chance = rand.Next(101);
+            int chance = _random.Next(101);
             if (chance < _dodgeChance)
             {
                 return true;
@@ -336,10 +339,10 @@ namespace GladiatorFight
     {
         public Barbarian(string name, string specialAttackName)
         {
-            Random rand = new Random();
+            _random = new Random();
             Name = name;
-            Health = rand.Next(150, 220);
-            Damage = rand.Next(25, 50);
+            Health = _random.Next(150, 220);
+            Damage = _random.Next(25, 50);
             SpecialAttackName = specialAttackName;
         }
 
@@ -350,8 +353,8 @@ namespace GladiatorFight
 
         public override int SpecialAttack()
         {
-            Random rand = new Random();
-            return Damage * rand.Next(2, 5);
+            _random = new Random();
+            return Damage * _random.Next(2, 5);
         }
 
         public override void TakeDamage(int damage)

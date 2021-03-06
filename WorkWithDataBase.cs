@@ -10,8 +10,8 @@ namespace DataBase
     {
         static void Main(string[] args)
         {
-            Database dataBase = new Database();
-            dataBase.Operate();
+            Database playersDataBase = new Database();
+            playersDataBase.Operate();
         }
     }
 
@@ -71,12 +71,20 @@ namespace DataBase
         {
             Console.WriteLine("Введите никнейм нового игрока");
             string nickname = Console.ReadLine();
+
             Console.WriteLine("Введите уровень нового игрока");
-            int level = Convert.ToInt32(Console.ReadLine());
+            string levelInput = Console.ReadLine();
+            if (int.TryParse(levelInput, out int level))
+            {
+                Player player = new Player(nickname, level);
 
-            Player player = new Player(nickname, level);
-
-            _players.Add(player);
+                _players.Add(player);
+            }
+            else
+            {
+                Console.WriteLine("Ошибка ввода");
+                Console.ReadKey();
+            }
         }
 
         private Player FindPlayer(int id) 
@@ -88,12 +96,6 @@ namespace DataBase
                 {
                     findingPlayer = player;
                     return findingPlayer;
-                }
-                else
-                {
-                    Console.WriteLine("Игрок с таким ID не найден");
-                    Console.ReadKey();
-                    return null;
                 }
             }
             return null;
@@ -120,16 +122,37 @@ namespace DataBase
             if (_players.Count > 0) 
             {
                 Console.WriteLine("Введите id игрока которого нужно забанить");
-                int id = Convert.ToInt32(Console.ReadLine());
-
-                Console.WriteLine("На сколько часов забанить игрока?");
-                double time = Convert.ToDouble(Console.ReadLine());
-
-                Player banningPlayer = FindPlayer(id);
-                banningPlayer.Bann(time);
-
-                Console.WriteLine($"Игрок с ником {banningPlayer.Nickname} забанен");
-                Console.ReadKey();
+                string userInput = Console.ReadLine();
+                if (int.TryParse(userInput, out int id))
+                {
+                    if (FindPlayer(id) == null)
+                    {
+                        Console.WriteLine("Игрок с таким ID не найден");
+                        Console.ReadKey();
+                    }
+                    else
+                    {
+                        Console.WriteLine("На сколько часов забанить игрока?");
+                        userInput = Console.ReadLine();
+                        if (double.TryParse(userInput, out double time))
+                        {
+                            Player playerToBann = FindPlayer(id);
+                            playerToBann.Bann(time);
+                            Console.WriteLine($"Игрок с ником {playerToBann.Nickname} забанен");
+                            Console.ReadKey();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ошибка ввода");
+                            Console.ReadKey();
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Ошибка ввода");
+                    Console.ReadKey();
+                }
             }
             else
             {
@@ -142,14 +165,35 @@ namespace DataBase
             if (_players.Count > 0) 
             {
                 Console.WriteLine("Введите id игрока которого нужно разбанить");
-                int id = Convert.ToInt32(Console.ReadLine());
-
-
-                Player banningPlayer = FindPlayer(id);
-                banningPlayer.UnBann();
-
-                Console.WriteLine($"Игрок с ником {banningPlayer.Nickname} разбанен");
-                Console.ReadKey();
+                string userInput = Console.ReadLine();
+                if (int.TryParse(userInput, out int id))
+                {
+                    if (FindPlayer(id) == null)
+                    {
+                        Console.WriteLine("Игрок с таким ID не найден");
+                        Console.ReadKey();
+                    }
+                    else
+                    {
+                        Player bannedPlayer = FindPlayer(id);
+                        if (bannedPlayer.IsBanned == false)
+                        {
+                            Console.WriteLine("Игрок активен, его не нужно разбанивать");
+                            Console.ReadKey();
+                        }
+                        else
+                        {
+                            bannedPlayer.UnBann();
+                            Console.WriteLine($"Игрок с ником {bannedPlayer.Nickname} разбанен");
+                            Console.ReadKey();
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Ошибка ввода");
+                    Console.ReadKey();
+                }
             }
             else
             {
@@ -160,25 +204,25 @@ namespace DataBase
 
     class Player 
     {
-        private static int counter = 1;
+        private static int _lastID = 1;
         public int ID { get; private set; }
         public string Nickname { get; private set; }
         public int Level { get; private set; }
-        public bool isBanned { get; private set; }
+        public bool IsBanned { get; private set; }
         public DateTime BannedTime { get; private set; }
 
         public Player(string nickname, int level) 
         {
-            ID = counter;
+            ID = _lastID;
             Nickname = nickname;
             Level = level;
-            isBanned = false;
-            counter++;
+            IsBanned = false;
+            _lastID++;
         }
 
         public void ShowInfo()
         {
-            if (isBanned)
+            if (IsBanned)
                 Console.WriteLine($"ID Игрока - {ID}\nНикнейм - {Nickname}\nУровень - {Level}\nИгрок забанен до {BannedTime}\n");
             else 
                 Console.WriteLine($"ID Игрока - {ID}\nНикнейм - {Nickname}\nУровень - {Level}\nИгрок активен\n");
@@ -190,7 +234,7 @@ namespace DataBase
             {
                 BannedTime = DateTime.Now;
                 BannedTime = BannedTime.AddHours(time);
-                isBanned = true;
+                IsBanned = true;
             }
             else
             {
@@ -201,7 +245,7 @@ namespace DataBase
 
         public void UnBann() 
         {
-            isBanned = false;
+            IsBanned = false;
         }
     }
 }

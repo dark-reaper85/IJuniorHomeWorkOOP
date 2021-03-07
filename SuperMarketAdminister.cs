@@ -18,8 +18,8 @@ namespace SuperMarket
     class Market 
     {
         private int _money;
-        private Random _random;
-        public List<Product> Goods = new List<Product>
+        private Random _random = new Random();
+        private List<Product> _goods = new List<Product>
         {
             new Product("огурец", 10),
             new Product("помидор", 9),
@@ -42,9 +42,8 @@ namespace SuperMarket
 
         public Market() 
         {
-            _random = new Random();
             _clientsQueue = new Queue<Client>();
-            _clientsQueue.Enqueue(new Client(Goods));
+            _clientsQueue.Enqueue(new Client(_goods));
         }
 
         public void Operate() 
@@ -78,38 +77,28 @@ namespace SuperMarket
 
         public void CallNewClient() 
         {
-            _clientsQueue.Enqueue(new Client(Goods));
+            _clientsQueue.Enqueue(new Client(_goods));
             Console.WriteLine("Новый клиент в очереди");
             Console.ReadKey();
-        }
-
-        private int RateTheCostOfShopping() 
-        {
-            int costOfFoods = 0;
-            foreach (var product in _clientsQueue.Peek().BasketWithProducts)
-            {
-                costOfFoods += product.Price;
-            }
-            Console.WriteLine($"Стоимость покупок: {costOfFoods}");
-            return costOfFoods;
         }
 
         private void ServeClient() 
         {
             if (_clientsQueue.Count > 0)
             {
-                int costOfFoods = RateTheCostOfShopping();
-                _clientsQueue.Peek().ShowProducts();
+                Client currentClient = _clientsQueue.Peek();
+                int costOfFoods = currentClient.SumProductsInBasket();
+                currentClient.ShowProducts();
 
                 Console.WriteLine("Готовы произвести расчет?");
                 Console.ReadKey();
 
-                if (costOfFoods > _clientsQueue.Peek().Money)
+                if (costOfFoods > currentClient.Money)
                 {
                     Console.WriteLine("У клиента недостаточно средств. Он убирает лишнее.");
-                    _clientsQueue.Peek().RemoveProduct();
-                    costOfFoods = RateTheCostOfShopping();
-                    _clientsQueue.Peek().ShowProducts();
+                    currentClient.RemoveExtraProducts();
+                    costOfFoods = currentClient.SumProductsInBasket();
+                    currentClient.ShowProducts();
                 }
 
                 _money += costOfFoods;
@@ -127,24 +116,24 @@ namespace SuperMarket
 
     class Client
     {
-        private Random _random;
+        private Random _random = new Random();
+        private List<Product> _basketWithProducts;
         public int Money { get; private set; }
-        public List<Product> BasketWithProducts { get; private set; }
         
         public Client(List<Product> goods)
         {
-            _random = new Random();
-            BasketWithProducts = new List<Product>();
+
+            _basketWithProducts = new List<Product>();
             Money = _random.Next(10, 40);
             FillTheBasket(goods);
         }
 
         public void ShowProducts() 
         {
-            if (BasketWithProducts.Count > 0)
+            if (_basketWithProducts.Count > 0)
             {
                 Console.WriteLine("Клиент хочет купить:");
-                foreach (var product in BasketWithProducts)
+                foreach (var product in _basketWithProducts)
                 {
                     product.ShowInfo();
                 }
@@ -161,19 +150,19 @@ namespace SuperMarket
             for (int i = 0; i < _random.Next(0,goods.Count); i++)
             {
                 int j = _random.Next(0, goods.Count);
-                BasketWithProducts.Add(goods[j]);
+                _basketWithProducts.Add(goods[j]);
             }
         }
 
-        public void RemoveProduct() 
+        public void RemoveExtraProducts() 
         {
             int sum = SumProductsInBasket();
             
             while (sum >= Money)
             {
-                if (BasketWithProducts.Count > 0)
+                if (_basketWithProducts.Count > 0)
                 {
-                    BasketWithProducts.RemoveAt(_random.Next(0, BasketWithProducts.Count));
+                    _basketWithProducts.RemoveAt(_random.Next(0, _basketWithProducts.Count));
                 }
                 else
                 {
@@ -186,10 +175,10 @@ namespace SuperMarket
             }
         }
 
-        private int SumProductsInBasket() 
+        public int SumProductsInBasket() 
         {
             int sum = 0;
-            foreach (var product in BasketWithProducts)
+            foreach (var product in _basketWithProducts)
             {
                 sum += product.Price;
             }

@@ -11,20 +11,18 @@ namespace TeamGladiatorFight
     {
         static void Main(string[] args)
         {
-            BattleGround battleGround = new BattleGround();
+            BattleGround battleGround1 = new BattleGround();
 
-            battleGround.OrganizeBattle();
+            battleGround1.OrganizeBattle();
         }
     }
 
     class BattleGround
     {
-        public Random _random = new Random();
-        private Gladiator _firstGladiator;
-        private Gladiator _secondGladiator;
+        private Random _random = new Random();
         private Team _team1;
         private Team _team2;
-        private bool _allTeamsCreated;
+        private int _teamsCount = 2;
         private bool _allTeamsLive = true;
         
         private List<Gladiator> _gladiators = new List<Gladiator>
@@ -46,30 +44,25 @@ namespace TeamGladiatorFight
         public void OrganizeBattle()
         {
             ShowGladiators();
+            CreateTeams();
             while (_allTeamsLive)
             {
-                if (_allTeamsCreated == false)
-                {
-                    CreateTeams();
-                }
-                else 
-                {
-                    ShowTeams();
-                    TakeTeamsToFight();
-                    Fight(_team1, _team2);
-                }
+                ShowTeams();
+                TakeTeamsToFight();
+                Fight(_team1, _team2);
                 Thread.Sleep(500);
             }
         }
 
         private bool AllTeamsAreLive() 
         {
-            if (_allTeamsCreated && _teams.Count > 1)
+            if (_teams.Count > 1)
             {
                 return true;
             }
             else 
             {
+                Console.Clear();
                 Console.WriteLine($"{_teams[0].GetTeamLabel()} Абсолютный Чемпион");
                 Console.ReadKey();
                 _allTeamsLive = false;
@@ -81,6 +74,7 @@ namespace TeamGladiatorFight
         {
             for (int i = 0; i < _gladiators.Count; i++)
             {
+                Console.Write(i + 1 + ": ");
                 _gladiators[i].ShowInfo();
             }
         }
@@ -126,23 +120,24 @@ namespace TeamGladiatorFight
             switch (_random.Next(1, 3))
             {
                 case 1:
-                    Console.WriteLine($"\n{gladiator1.Name} из команды {team1.GetTeamLabel()} наносит урон {gladiator1.Attack()} по {gladiator2.Name} из команды {team2.GetTeamLabel()}");
-                    gladiator2.TakeDamage(gladiator1.Attack());
-                    Console.WriteLine($"Здоровье {gladiator2.Name} из команды {team2.GetTeamLabel()}: {gladiator2.Health}");
-                    
-                    team2.IsGladiatorDead(gladiator2);
-                    CheckWinner(team2);
-                    
+                    Console.WriteLine($"\n{gladiator1.Name} из команды {team1.GetTeamLabel()} наносит урон {gladiator1.Attack()}");
+                    TakeDamagedGladiator(gladiator1, gladiator2, team2);
                     break;
                 case 2:
-                    Console.WriteLine($"\n{gladiator1.Name} из команды {team1.GetTeamLabel()} применяет {gladiator1.SpecialAttackName} и наносит урон {gladiator1.SpecialAttack()} по {gladiator2.Name} из команды {team2.GetTeamLabel()}");
-                    gladiator2.TakeDamage(gladiator1.SpecialAttack());
-                    Console.WriteLine($"Здоровье {gladiator2.Name}: {gladiator2.Health}");
-                    
-                    team2.IsGladiatorDead(gladiator2);
-                    CheckWinner(team2);
+                    Console.WriteLine($"\n{gladiator1.Name} из команды {team1.GetTeamLabel()} применяет {gladiator1.SpecialAttackName} и наносит урон {gladiator1.SpecialAttack()}");
+                    TakeDamagedGladiator(gladiator1, gladiator2, team2);
                     break;
             }
+        }
+
+        private void TakeDamagedGladiator(Gladiator gladiator1, Gladiator gladiator2, Team team) 
+        {
+            Console.Write($" по { gladiator2.Name} из команды { team.GetTeamLabel()}\n"); 
+            gladiator2.TakeDamage(gladiator1.Attack());
+            Console.WriteLine($"Здоровье {gladiator2.Name} из команды {team.GetTeamLabel()}: {gladiator2.Health}");
+
+            team.IsGladiatorDead(gladiator2);
+            CheckWinner(team);
         }
 
         private void CheckWinner(Team team) 
@@ -157,43 +152,22 @@ namespace TeamGladiatorFight
 
         private void CreateTeams() 
         {
-            Console.WriteLine("Сколько команд вы хотите создать?");
-            string userInput = Console.ReadLine();
-
-            if (int.TryParse(userInput, out int teamsCount))
+            string userInput;
+            int teamsCount = _teamsCount;
+            for (int i = 0; i < _teamsCount; i++)
             {
-                if (teamsCount > 1)
-                {
-                    for (int i = 0; i < teamsCount; i++)
-                    {
-                        Console.WriteLine("Введите название команды:");
-                        userInput = Console.ReadLine();
+                Console.WriteLine($"\nВведите название команды №{i+1}");
+                userInput = Console.ReadLine();
 
-                        _teams.Add(FillTeam(userInput, teamsCount));
-                    }
-
-                    Console.WriteLine("Команды сформированы. Теперь их можно стравить друг с другом");
-                    _allTeamsCreated = true;
-                    Console.ReadKey();
-                }
-                else
-                {
-                    Console.WriteLine("Необходимо создать минимум 2 команды");
-                    Console.ReadKey();
-                }
-            }
-            else
-            {
-                Console.WriteLine("Ошибка ввода.");
-                Console.ReadKey();
+                _teams.Add(FillTeam(userInput, ref teamsCount));
             }
         }
 
-        private Team FillTeam(string teamLabel ,int teamsCount) 
+        private Team FillTeam(string teamLabel ,ref int teamsCount) 
         {
             List<Gladiator> gladiators = new List<Gladiator>();
-
-            for (int i = 0; i < _gladiators.Count / teamsCount; i++)
+            int gladiatorsCount = _gladiators.Count / teamsCount;
+            for (int i = 0; i < gladiatorsCount; i++)
             {
                 int gladiatorNumber = _random.Next(0, _gladiators.Count);
 
@@ -201,7 +175,7 @@ namespace TeamGladiatorFight
 
                 _gladiators.RemoveAt(gladiatorNumber);
             }
-
+            teamsCount--;
             Team team = new Team(teamLabel, gladiators);
             return team;
         }
@@ -220,37 +194,38 @@ namespace TeamGladiatorFight
     class Team
     {
         private Random _random = new Random();
-        private List<Gladiator> _gladiatorsInTeam;
-        private string _teamLabel;
+        private List<Gladiator> _gladiators;
+        private string _Label;
 
         public Team(string teamLabel, List<Gladiator> gladiators)
         {
-            _teamLabel = teamLabel;
-            _gladiatorsInTeam = gladiators;
+            _Label = teamLabel;
+            _gladiators = gladiators;
         }
 
         public void ShowInfo()
         {
-            Console.WriteLine($"Команда: {_teamLabel}");
-            foreach (var gladiator in _gladiatorsInTeam)
+            Console.WriteLine($"Команда: {_Label}");
+            for (int i = 0; i < _gladiators.Count; i++)
             {
-                gladiator.ShowInfo();
+                Console.Write(i+1 + ": ");
+                _gladiators[i].ShowInfo();
             }
         }
 
         public int GetGladiatorsNumber() 
         {
-            return _gladiatorsInTeam.Count;
+            return _gladiators.Count;
         }
 
         public Gladiator GetRandomGladiator()
         {
-            return _gladiatorsInTeam[_random.Next(0, _gladiatorsInTeam.Count)];
+            return _gladiators[_random.Next(0, _gladiators.Count)];
         }
 
         public string GetTeamLabel() 
         {
-            return _teamLabel;
+            return _Label;
         }
 
         public void IsGladiatorDead(Gladiator gladiator) 
@@ -258,7 +233,7 @@ namespace TeamGladiatorFight
             if (gladiator.Health <= 0)
             {
                 Console.WriteLine($"{gladiator.Name} умер и выбывает");
-                _gladiatorsInTeam.Remove(gladiator);
+                _gladiators.Remove(gladiator);
             }  
         }
 
@@ -275,7 +250,7 @@ namespace TeamGladiatorFight
     abstract class Gladiator
     {
         protected int Damage;
-        protected Random _random = new Random();
+        protected Random Random = new Random();
 
         public string ClassLabel { get; protected set; }
         public string Name { get; protected set; }
@@ -299,9 +274,9 @@ namespace TeamGladiatorFight
         {
             ClassLabel = "Воин";
             Name = name;
-            Health = _random.Next(100, 150);
-            Damage = _random.Next(10, 25);
-            _armor = _random.Next(5, 40);
+            Health = Random.Next(100, 150);
+            Damage = Random.Next(10, 25);
+            _armor = Random.Next(5, 40);
             SpecialAttackName = specialAttackName;
         }
 
@@ -312,7 +287,7 @@ namespace TeamGladiatorFight
 
         public override int SpecialAttack()
         {
-            return Damage * _random.Next(2, 5);
+            return Damage * Random.Next(2, 5);
         }
 
         public override void TakeDamage(int damage)
@@ -327,8 +302,8 @@ namespace TeamGladiatorFight
         {
             ClassLabel = "Лучник";
             Name = name;
-            Health = _random.Next(100, 120);
-            Damage = _random.Next(15, 40);
+            Health = Random.Next(100, 120);
+            Damage = Random.Next(15, 40);
             SpecialAttackName = specialAttackName;
         }
 
@@ -339,7 +314,7 @@ namespace TeamGladiatorFight
 
         public override int SpecialAttack()
         {
-            return Damage * 2 * _random.Next(2, 5);
+            return Damage * 2 * Random.Next(2, 5);
         }
 
         public override void TakeDamage(int damage)
@@ -356,10 +331,10 @@ namespace TeamGladiatorFight
         {
             ClassLabel = "Маг";
             Name = name;
-            Health = _random.Next(70, 120);
-            Damage = _random.Next(10, 25);
-            _mana = _random.Next(120, 150);
-            _specialAttackManaCost = _random.Next(15, 50);
+            Health = Random.Next(70, 120);
+            Damage = Random.Next(10, 25);
+            _mana = Random.Next(120, 150);
+            _specialAttackManaCost = Random.Next(15, 50);
             SpecialAttackName = specialAttackName;
         }
 
@@ -377,7 +352,7 @@ namespace TeamGladiatorFight
             else
             {
                 _mana -= _specialAttackManaCost;
-                return Damage * _random.Next(3, 8);
+                return Damage * Random.Next(3, 8);
             }
         }
 
@@ -406,9 +381,9 @@ namespace TeamGladiatorFight
         {
             ClassLabel = "Вор";
             Name = name;
-            Health = _random.Next(70, 120);
-            Damage = _random.Next(15, 35);
-            _dodgeChance = _random.Next(20, 50);
+            Health = Random.Next(70, 120);
+            Damage = Random.Next(15, 35);
+            _dodgeChance = Random.Next(20, 50);
             SpecialAttackName = specialAttackName;
         }
 
@@ -419,12 +394,12 @@ namespace TeamGladiatorFight
 
         public override int SpecialAttack()
         {
-            return Damage * _random.Next(3, 8);
+            return Damage * Random.Next(3, 8);
         }
 
         private bool IsDodged()
         {
-            int chance = _random.Next(101);
+            int chance = Random.Next(101);
             if (chance < _dodgeChance)
             {
                 return true;
@@ -455,8 +430,8 @@ namespace TeamGladiatorFight
         {
             ClassLabel = "Варвар";
             Name = name;
-            Health = _random.Next(150, 220);
-            Damage = _random.Next(25, 50);
+            Health = Random.Next(150, 220);
+            Damage = Random.Next(25, 50);
             SpecialAttackName = specialAttackName;
         }
 
@@ -467,8 +442,8 @@ namespace TeamGladiatorFight
 
         public override int SpecialAttack()
         {
-            _random = new Random();
-            return Damage * _random.Next(2, 5);
+            Random = new Random();
+            return Damage * Random.Next(2, 5);
         }
 
         public override void TakeDamage(int damage)

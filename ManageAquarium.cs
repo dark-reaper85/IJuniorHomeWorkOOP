@@ -18,14 +18,12 @@ namespace AquariumManager
 
     class Aquarium 
     {
-        private int _loopIterationNumber;
         private int _maxFishCount;
         private bool _isWorking;
         private List<Fish> _fishes;
 
         public Aquarium() 
         {
-            _loopIterationNumber = 0;
             _maxFishCount = 6;
             _isWorking = true;
             _fishes = new List<Fish>();
@@ -33,25 +31,26 @@ namespace AquariumManager
 
         public void ManageAquarium() 
         {
+            int loopIterationNumber = 0;
             while (_isWorking)
             {
                 Console.Clear();
-                ShowAllFishes();
+                ShowAllFishes(loopIterationNumber);
 
-                ControlFishesLives();
+                ControlFishesLives(loopIterationNumber);
 
-                ControlAquarium();
+                ControlAquarium(loopIterationNumber);
 
-                _loopIterationNumber++;
+                loopIterationNumber++;
                 Thread.Sleep(200);
             }
         }
 
-        private void TryAddFish() 
+        private void TryAddFish(int loopIterationNumber) 
         {
             if (_fishes.Count <= _maxFishCount)
             {
-                _fishes.Add(new Fish(_loopIterationNumber));
+                _fishes.Add(new Fish(loopIterationNumber));
             }
             else
             {
@@ -72,31 +71,31 @@ namespace AquariumManager
             }
         }
 
-        private void ShowAllFishes() 
+        private void ShowAllFishes(int loopIterationNumber) 
         {
             if (_fishes.Count == 0)
             {
                 Console.SetCursorPosition(0, 0);
-                Console.WriteLine("Аквариум пуст. Добавьте повых рыб.");
+                Console.WriteLine("Аквариум пуст. Добавьте новых рыб.");
             }
             else
             {
                 foreach (var fish in _fishes)
                 {
-                    fish.ShowInfo(_loopIterationNumber);
+                    fish.ShowInfo(loopIterationNumber);
                 }
             }
         }
 
-        private void ControlFishesLives() 
+        private void ControlFishesLives(int loopIterationNumber) 
         {
             foreach (var fish in _fishes)
             {
-                fish.CheckStates(_loopIterationNumber);
+                fish.CheckStates(loopIterationNumber);
             }
         }
 
-        private void ControlAquarium() 
+        private void ControlAquarium(int loopIterationNumber) 
         {
             Console.SetCursorPosition(0, _fishes.Count + 2);
             Console.WriteLine("A - Добавить рыб в аквариум");
@@ -109,7 +108,7 @@ namespace AquariumManager
                 switch (key.Key)
                 {
                     case ConsoleKey.A:
-                        TryAddFish();
+                        TryAddFish(loopIterationNumber);
                         break;
                     case ConsoleKey.D:
                         DeleteDeadFish();
@@ -134,6 +133,7 @@ namespace AquariumManager
         private int _birthTime;
         private int _lifetime;
         private Random _random = new Random();
+
         public bool IsAlive { get; private set; }
 
         public Fish(int loopIterationNumber) 

@@ -18,10 +18,18 @@ namespace AquariumManager
 
     class Aquarium 
     {
-        private int _timer = 0;
-        private int _maxFishCount = 6;
-        private bool _isWorking = true;
-        private List<Fish> _fishes = new List<Fish>();
+        private int _loopIterationNumber;
+        private int _maxFishCount;
+        private bool _isWorking;
+        private List<Fish> _fishes;
+
+        public Aquarium() 
+        {
+            _loopIterationNumber = 0;
+            _maxFishCount = 6;
+            _isWorking = true;
+            _fishes = new List<Fish>();
+        }
 
         public void ManageAquarium() 
         {
@@ -34,7 +42,7 @@ namespace AquariumManager
 
                 ControlAquarium();
 
-                _timer++;
+                _loopIterationNumber++;
                 Thread.Sleep(200);
             }
         }
@@ -43,7 +51,7 @@ namespace AquariumManager
         {
             if (_fishes.Count <= _maxFishCount)
             {
-                _fishes.Add(new Fish(_timer));
+                _fishes.Add(new Fish(_loopIterationNumber));
             }
             else
             {
@@ -75,7 +83,7 @@ namespace AquariumManager
             {
                 foreach (var fish in _fishes)
                 {
-                    fish.ShowInfo(_timer);
+                    fish.ShowInfo(_loopIterationNumber);
                 }
             }
         }
@@ -84,7 +92,7 @@ namespace AquariumManager
         {
             foreach (var fish in _fishes)
             {
-                fish.CheckStates(_timer);
+                fish.CheckStates(_loopIterationNumber);
             }
         }
 
@@ -128,31 +136,31 @@ namespace AquariumManager
         private Random _random = new Random();
         public bool IsAlive { get; private set; }
 
-        public Fish(int timer) 
+        public Fish(int loopIterationNumber) 
         {
             _fishNumber = _lastFishNumber;
-            _birthTime = timer;
+            _birthTime = loopIterationNumber;
             _lifetime = _random.Next(10, 20);
             IsAlive = true;
             _lastFishNumber++;
         }
 
-        public void ShowInfo(int timer) 
+        public void ShowInfo(int loopIterationNumber) 
         {
             if (IsAlive)
-                Console.WriteLine($"Рыба №{_fishNumber}: возраст {CheckAge(timer)}. РЫба жива.");
+                Console.WriteLine($"Рыба №{_fishNumber}: возраст {CheckAge(loopIterationNumber)}. РЫба жива.");
             else
                 Console.WriteLine($"Рыба №{_fishNumber} - мертва.");
         }
 
-        private int CheckAge(int timer) 
+        private int CheckAge(int loopIterationNumber) 
         {
-            return timer - _birthTime;
+            return loopIterationNumber - _birthTime;
         }
 
-        public void CheckStates(int timer) 
+        public void CheckStates(int loopIterationNumber) 
         {
-            _age = CheckAge(timer);
+            _age = CheckAge(loopIterationNumber);
             if (_age >= _lifetime)
             {
                 IsAlive = false;

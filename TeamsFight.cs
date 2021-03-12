@@ -11,18 +11,17 @@ namespace TeamGladiatorFight
     {
         static void Main(string[] args)
         {
-            BattleGround battleGround1 = new BattleGround();
+            Battleground battleGround1 = new Battleground();
 
             battleGround1.OrganizeBattle();
         }
     }
 
-    class BattleGround
+    class Battleground
     {
         private Random _random = new Random();
         private Team _team1;
         private Team _team2;
-        private int _teamsCount = 2;
         private bool _allTeamsLive = true;
         
         private List<Gladiator> _gladiators = new List<Gladiator>
@@ -142,7 +141,7 @@ namespace TeamGladiatorFight
 
         private void CheckWinner(Team team) 
         {
-            if (team.IsTeamLeaves())
+            if (team.IsTeamLeaveBattle())
             {
                 Console.WriteLine($"Команда {team.GetTeamLabel()} проиграла");
                 _teams.Remove(team);
@@ -153,20 +152,22 @@ namespace TeamGladiatorFight
         private void CreateTeams() 
         {
             string userInput;
-            int teamsCount = _teamsCount;
-            for (int i = 0; i < _teamsCount; i++)
+            int teamsCount = 2;
+            int teamsToCreate = teamsCount;
+            for (int i = 0; i < teamsCount; i++)
             {
                 Console.WriteLine($"\nВведите название команды №{i+1}");
                 userInput = Console.ReadLine();
 
-                _teams.Add(FillTeam(userInput, ref teamsCount));
+                _teams.Add(FillTeam(userInput, teamsToCreate));
+                teamsToCreate--;
             }
         }
 
-        private Team FillTeam(string teamLabel ,ref int teamsCount) 
+        private Team FillTeam(string teamLabel , int teamsToCreate) 
         {
             List<Gladiator> gladiators = new List<Gladiator>();
-            int gladiatorsCount = _gladiators.Count / teamsCount;
+            int gladiatorsCount = _gladiators.Count / teamsToCreate;
             for (int i = 0; i < gladiatorsCount; i++)
             {
                 int gladiatorNumber = _random.Next(0, _gladiators.Count);
@@ -175,9 +176,8 @@ namespace TeamGladiatorFight
 
                 _gladiators.RemoveAt(gladiatorNumber);
             }
-            teamsCount--;
-            Team team = new Team(teamLabel, gladiators);
-            return team;
+            
+            return new Team(teamLabel, gladiators);
         }
 
         public void ShowTeams() 
@@ -195,17 +195,17 @@ namespace TeamGladiatorFight
     {
         private Random _random = new Random();
         private List<Gladiator> _gladiators;
-        private string _Label;
+        private string _label;
 
         public Team(string teamLabel, List<Gladiator> gladiators)
         {
-            _Label = teamLabel;
+            _label = teamLabel;
             _gladiators = gladiators;
         }
 
         public void ShowInfo()
         {
-            Console.WriteLine($"Команда: {_Label}");
+            Console.WriteLine($"Команда: {_label}");
             for (int i = 0; i < _gladiators.Count; i++)
             {
                 Console.Write(i+1 + ": ");
@@ -225,7 +225,7 @@ namespace TeamGladiatorFight
 
         public string GetTeamLabel() 
         {
-            return _Label;
+            return _label;
         }
 
         public void IsGladiatorDead(Gladiator gladiator) 
@@ -237,13 +237,9 @@ namespace TeamGladiatorFight
             }  
         }
 
-        public bool IsTeamLeaves() 
+        public bool IsTeamLeaveBattle() 
         {
-            if (GetGladiatorsNumber() == 0)
-            {
-                return true;
-            }
-            return false;
+            return GetGladiatorsNumber() == 0;
         }
     }
 

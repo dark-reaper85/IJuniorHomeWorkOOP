@@ -18,60 +18,64 @@ namespace VisitZoo
 
     class Zoo
     {
-        private List<string> _animalNames = new List<string>()
-        {
-             "медведь" ,  
-             "волк" ,  
-             "лиса" ,  
-             "змея" , 
-        };
-
-        private List<string> _soundOFAnimals = new List<string>()
-        {
-             "ррррр",
-             "уууууу",
-             "фрфрфр",
-             "шшшшшш",
-        };
-
-        private List<Aviary> _aviaries = new List<Aviary>();
+        private List<Aviary> _aviaries;
+        private List<string> _animalNames;
+        private bool _zooIsWorking;
 
         public Zoo() 
         {
+            _zooIsWorking = true;
+            _aviaries = new List<Aviary>();
+            _animalNames = new List<string>()
+            {
+                "Медведь",
+                "Лиса",
+                "Волк",
+                "Змея"
+            };
             SettleAnimals();
         }
+
         public void OperateZoo() 
         {
-            bool isWorking = true;
-            while (isWorking)
+            while (_zooIsWorking)
             {
                 Console.Clear();
-                Console.WriteLine($"1 - Посетить вольер с {_aviaries[0].Name}");
-                Console.WriteLine($"2 - Посетить вольер с {_aviaries[1].Name}");
-                Console.WriteLine($"3 - Посетить вольер с {_aviaries[2].Name}");
-                Console.WriteLine($"4 - Посетить вольер с {_aviaries[3].Name}");
-                Console.WriteLine("5 - Выйти из зоопарка");
-                string userInput = Console.ReadLine();
-                switch (userInput)
+                ShowAviaries();
+                EnterAviary();
+            }
+        }
+
+        private void ShowAviaries() 
+        {
+            for (int i = 0; i < _aviaries.Count; i++)
+            {
+                Console.WriteLine($"{i + 1} - Посетить вольер с {_aviaries[i].Name}");
+            }
+            Console.WriteLine($"{_aviaries.Count + 1} - Выйти из зоопарка");
+        }
+
+        private void EnterAviary() 
+        {
+            string userInput = Console.ReadLine();
+            if (int.TryParse(userInput, out int index))
+            {
+                if (index > 0 && index <= _aviaries.Count)
                 {
-                    case "1":
-                        _aviaries[0].ShowInfo();
-                        break;
-                    case "2":
-                        _aviaries[1].ShowInfo();
-                        break;
-                    case "3":
-                        _aviaries[2].ShowInfo();
-                        break;
-                    case "4":
-                        _aviaries[3].ShowInfo();
-                        break;
-                    case "5":
-                        isWorking = false;
-                        break;
-                    default:
-                        break;
+                    _aviaries[index-1].ShowInfo();
                 }
+                else if (index == _aviaries.Count + 1)
+                {
+                    _zooIsWorking = false;
+                }
+                else
+                {
+                    Console.WriteLine("Неизвестная команда");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Неизвестная команда");
             }
         }
 
@@ -79,7 +83,7 @@ namespace VisitZoo
         {
             for (int i = 0; i < _animalNames.Count; i++)
             {
-                _aviaries.Add(new Aviary(_animalNames[i], _soundOFAnimals[i]));
+                _aviaries.Add(new Aviary(_animalNames[i]));
             }
         }
     }
@@ -87,23 +91,27 @@ namespace VisitZoo
     class Aviary 
     {
         private Random _random = new Random();
-        public string Name { get; private set; }
+        private List<Animal> _animals;
         private int _maxAnimalsCount;
         private int _malesCount;
         private int _femalesCount;
-        private List<Animal> _animals = new List<Animal>();
 
-        public Aviary(string name, string sound) 
+        public string Name { get; private set; }
+
+        public Aviary(string name) 
         {
-            Name = name;
+            _animals = new List<Animal>();
             _maxAnimalsCount = _random.Next(2, 11);
-            FillAviary(sound);
+            Name = name;
+            FillAviary(name);
             CountMalesAndFemales();
+            Thread.Sleep(1);
         }
 
         public void ShowInfo() 
         {
             bool inAviary = true;
+
             while (inAviary)
             {
                 Console.Clear();
@@ -114,31 +122,33 @@ namespace VisitZoo
                 Console.WriteLine("Для выхода из вольера нажмите ESC");
 
                 ConsoleKeyInfo key = Console.ReadKey(true);
-                switch (key.Key)
+                if (key.Key == ConsoleKey.Escape)
                 {
-                    case ConsoleKey.Escape:
-                        inAviary = false;
-                        break;
-                    default:
-                        break;
+                    inAviary = false;
                 }
             }
         }
 
-        private void FillAviary(string sound) 
+        private void FillAviary(string name) 
         {
             for (int i = 0; i < _maxAnimalsCount; i++)
             {
-                _animals.Add(new Animal(Name, sound));
+                if (name == "Медведь")
+                    _animals.Add(new Bear());
+                if (name == "Лиса")
+                    _animals.Add(new Fox());
+                if (name == "Волк")
+                    _animals.Add(new Wolf());
+                if (name == "Змея")
+                    _animals.Add(new Snake());
             }
-            
         }
 
         private void CountMalesAndFemales() 
         {
             for (int i = 0; i < _animals.Count; i++)
             {
-                if (_animals[i].Gender == "самец")
+                if (_animals[i].Gender == Gender.Male)
                 {
                     _malesCount++;
                 }
@@ -150,32 +160,61 @@ namespace VisitZoo
         }
     }
 
+    enum Gender 
+    {
+        Male,
+        Female
+    }
+
     class Animal 
     {
-        private Random _random = new Random();
-        public string Name { get; private set; }
-        public string Gender { get; private set; }
-        public string Sound { get; private set; }
+        protected Random Random = new Random();
+        public string Name { get; protected set; }
+        public Gender Gender { get; protected set; }
+        public string Sound { get; protected set; }
+    }
 
-        public Animal(string name, string sound) 
+    class Bear : Animal 
+    {
+        public Bear() 
         {
-            Name = name;
-            Sound = sound;
-            SetGender();
+            Name = "Медведь";
+            Sound = "ррррр";
+            Gender = (Gender)Random.Next(0, 2);
             Thread.Sleep(1);
         }
+    }
 
-        private void SetGender() 
+    class Fox : Animal
+    {
+        public Fox()
         {
-            switch (_random.Next(1,3))
-            {
-                case 1:
-                    Gender = "самка";
-                    break;
-                case 2:
-                    Gender = "самец";
-                    break;
-            }
+            Name = "Лиса";
+            Sound = "фрфрфр";
+            Gender = (Gender)Random.Next(0, 2);
+            Thread.Sleep(1);
+        }
+    }
+
+    class Wolf : Animal
+    {
+        public Wolf()
+        {
+            Name = "Волк";
+            Sound = "ууууууу";
+            Gender = (Gender)Random.Next(0, 2);
+            Thread.Sleep(1);
+        }
+    }
+
+    class Snake : Animal
+    {
+        public Snake()
+        {
+            Name = "Змея";
+            Sound = "шшшшш";
+            Gender = (Gender)Random.Next(0, 2);
+            Thread.Sleep(1);
         }
     }
 }

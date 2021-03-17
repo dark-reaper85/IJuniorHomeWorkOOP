@@ -76,41 +76,38 @@ namespace CarService
 
             if (CheckAvailableInSpareParts(currentClient))
             {
-                Console.WriteLine("2 - Заменить поврежденную деталь.");
+                Console.WriteLine("1 - Заменить поврежденную деталь.");
             }
             else
             {
-                Console.WriteLine("3 - Отказать клиенту. Вы получите штраф.");
-                Console.WriteLine("4 - Установить клиенту ненужную деталь.(Вы заплатите клиенту полную стоимость поврежденной детали)");
+                Console.WriteLine("2 - Отказать клиенту. Вы получите штраф.");
+                Console.WriteLine("3 - Установить клиенту ненужную деталь.(Вы заплатите клиенту полную стоимость поврежденной детали)");
             }
-            Console.WriteLine("5 - Завершить работу");
+            Console.WriteLine("4 - Завершить работу");
 
             string userInput = Console.ReadLine();
 
             switch (userInput)
             {
                 case "1":
-                    _clientsCarsQueue.Enqueue(new ClientsCar());
-                    break;
-                case "2":
                     if (CheckAvailableInSpareParts(currentClient))
                     {
                         ReplaceDetail(currentClient);
                     }
                     break;
-                case "3":
+                case "2":
                     if (CheckAvailableInSpareParts(currentClient) == false)
                     {
                         RefuseToClient(currentClient);
                     }
                     break;
-                case "4":
+                case "3":
                     if (CheckAvailableInSpareParts(currentClient) == false)
                     {
                         SetUnnecessarySparePart(currentClient);
                     }
                     break;
-                case "5":
+                case "4":
                     _isWorking = false;
                     break;
                 default:
@@ -121,23 +118,39 @@ namespace CarService
 
         private void SetUnnecessarySparePart(ClientsCar currentClient) 
         {
-            SparePart unnecessarySparePart = _spareParts[_random.Next(0,_spareParts.Count)];
-            unnecessarySparePart.RemoveDetail();
-            _moneyBalance -= currentClient.DamagedDetail.Cost;
-            Console.WriteLine($"Клиенту установили: {unnecessarySparePart.Name}. Сервис возмещает клиенту{currentClient.DamagedDetail.Cost}");
-            Console.ReadKey();
-            _clientsCarsQueue.Dequeue();
-            if (unnecessarySparePart.Count == 0)
+            if (_spareParts.Count > 0)
             {
-                _spareParts.Remove(unnecessarySparePart);
+                SparePart unnecessarySparePart = _spareParts[_random.Next(0, _spareParts.Count)];
+
+                unnecessarySparePart.RemoveDetail();
+
+                _moneyBalance -= currentClient.DamagedDetail.Cost;
+
+                Console.WriteLine($"Клиенту установили: {unnecessarySparePart.Name}. Сервис возмещает клиенту{currentClient.DamagedDetail.Cost}");
+                Console.ReadKey();
+
+                _clientsCarsQueue.Dequeue();
+
+                if (unnecessarySparePart.Count == 0)
+                {
+                    _spareParts.Remove(unnecessarySparePart);
+                }
             }
+            else
+            {
+                Console.WriteLine("Запасные части закончились");
+                Console.ReadKey();
+            }
+            
         }
 
         private void RefuseToClient(ClientsCar currentClient) 
         {
             _moneyBalance -= currentClient.DamagedDetail.Cost;
+
             Console.WriteLine($"Клиенту отказано. Вы получили штраф в размере: {currentClient.DamagedDetail.Cost}");
             Console.ReadKey();
+
             _clientsCarsQueue.Dequeue();
         }
         
@@ -150,9 +163,13 @@ namespace CarService
                 if (CheckAvailableInSpareParts(currentClient))
                 {
                     replaceableDetail = _spareParts[i];
+
                     replaceableDetail.RemoveDetail();
+
                     int workCost = replaceableDetail.Cost + TakeReplacementWorkCost(currentClient);
+
                     _moneyBalance += workCost;
+
                     Console.WriteLine($"{replaceableDetail.Name} успешно заменена. Сервис заработал: {workCost} денег");
                     Console.ReadKey();
 
@@ -171,13 +188,16 @@ namespace CarService
         private int TakeReplacementWorkCost(ClientsCar currentClient) 
         {
             int workCost = 0;
+
             foreach (var replacementWork in _replacementWorkCheckList)
             {
                 if (currentClient.DamagedDetail.Name == replacementWork.Name.Substring(7))
                 {
                     workCost += replacementWork.Cost;
+                    break;
                 }
             }
+
             return workCost;
         }
 
@@ -190,6 +210,7 @@ namespace CarService
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -213,8 +234,11 @@ namespace CarService
             else
             {
                 ClientsCar currentClient = _clientsCarsQueue.Peek();
+
                 Console.WriteLine("У клиента:");
+
                 currentClient.ShowDamagedDetailInfo();
+
                 ShowCostOfReplacementWork(currentClient);
             }
         }
@@ -235,13 +259,9 @@ namespace CarService
                             workCost += replacementWork.Cost;
 
                             Console.WriteLine($"Стоимость замены: {currentClient.DamagedDetail.Name} составит: {workCost}");
+                            break;
                         }
                     }
-                    break;
-                }
-                else
-                {
-                    Console.WriteLine("На складе отсутствуют необходимые запчасти");
                     break;
                 }
             }
@@ -251,9 +271,11 @@ namespace CarService
         {
             List<SparePart> spareParts = new List<SparePart>();
 
-            for (int i = _random.Next(_sparePartsNames.Count / 2, _sparePartsNames.Count); i > 0 ; i--)
+            int sparePartCount = _random.Next(_sparePartsNames.Count / 2, _sparePartsNames.Count);
+
+            for (int i = 0; i < sparePartCount ; i++)
             {
-                spareParts.Add(new SparePart(_sparePartsNames[_random.Next(0, i)]));
+                spareParts.Add(new SparePart(_sparePartsNames[_random.Next(_sparePartsNames.Count)]));
             }
 
             return spareParts;
@@ -275,7 +297,7 @@ namespace CarService
     class ClientsCar
     {
         private Random _random = new Random();
-        public Detail DamagedDetail { get; private set; }
+
         private List<Detail> _details = new List<Detail>()
         {
             new Detail("Капот"),
@@ -287,6 +309,8 @@ namespace CarService
             new Detail("Левая задняя дверь"),
             new Detail("Правая задняя дверь"),
         };
+
+        public Detail DamagedDetail { get; private set; }
 
         public ClientsCar()
         {
@@ -302,6 +326,7 @@ namespace CarService
     class Detail
     {
         protected Random Random = new Random();
+
         public string Name { get; protected set; }
         public int Cost { get; protected set; }
 
@@ -336,6 +361,7 @@ namespace CarService
     class ReplacementWork 
     {
         private Random _random = new Random();
+
         public string Name { get; protected set; }
         public int Cost { get; protected set; }
 
@@ -350,5 +376,4 @@ namespace CarService
             Console.WriteLine($"{Name}. Стоимость: {Cost}");
         }
     }
-
 }

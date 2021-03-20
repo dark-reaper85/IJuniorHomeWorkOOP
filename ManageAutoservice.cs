@@ -20,19 +20,7 @@ namespace CarService
     class AutoService 
     {
         private Random _random = new Random();
-
-        private List<string> _sparePartsNames = new List<string>()
-        {
-            "Капот",
-            "Лобовое стекло",
-            "Передний бампер",
-            "Задний бампер",
-            "Левая передняя дверь",
-            "Правая передняя дверь",
-            "Левая задняя дверь",
-            "Правая задняя дверь"
-        };
-
+        private List<string> _sparePartsNames;
         private int _moneyBalance;
         private bool _isWorking;
         private List<ReplacementWork> _replacementWorkCheckList;
@@ -41,12 +29,23 @@ namespace CarService
 
         public AutoService() 
         {
+            _sparePartsNames = new List<string>()
+            {
+                "Капот",
+                "Лобовое стекло",
+                "Передний бампер",
+                "Задний бампер",
+                "Левая передняя дверь",
+                "Правая передняя дверь",
+                "Левая задняя дверь",
+                "Правая задняя дверь"
+            };
             _moneyBalance = _random.Next(10, 50);
             _isWorking = true;
             _spareParts = CreateSpareParts();
             _replacementWorkCheckList = CreateReplacementWork();
             _clientsCarsQueue = new Queue<ClientsCar>();
-            _clientsCarsQueue.Enqueue(new ClientsCar());
+            _clientsCarsQueue.Enqueue(new ClientsCar(_sparePartsNames));
         }
 
         public void Operate() 
@@ -59,7 +58,7 @@ namespace CarService
 
                 if (_clientsCarsQueue.Count == 0)
                 {
-                    _clientsCarsQueue.Enqueue(new ClientsCar());
+                    _clientsCarsQueue.Enqueue(new ClientsCar(_sparePartsNames));
                 }
 
                 ShowCurrentClient();
@@ -141,7 +140,6 @@ namespace CarService
                 Console.WriteLine("Запасные части закончились");
                 Console.ReadKey();
             }
-            
         }
 
         private void RefuseToClient(ClientsCar currentClient) 
@@ -176,12 +174,10 @@ namespace CarService
                     if (replaceableDetail.Count == 0)
                     {
                         _spareParts.RemoveAt(i);
-                        break;
                     }
                     break;
                 }
             }
-
             _clientsCarsQueue.Dequeue();
         }
 
@@ -197,7 +193,6 @@ namespace CarService
                     break;
                 }
             }
-
             return workCost;
         }
 
@@ -210,7 +205,6 @@ namespace CarService
                     return true;
                 }
             }
-
             return false;
         }
 
@@ -297,24 +291,23 @@ namespace CarService
     class ClientsCar
     {
         private Random _random = new Random();
-
-        private List<Detail> _details = new List<Detail>()
-        {
-            new Detail("Капот"),
-            new Detail("Лобовое стекло"),
-            new Detail("Передний бампер"),
-            new Detail("Задний бампер"),
-            new Detail("Левая передняя дверь"),
-            new Detail("Правая передняя дверь"),
-            new Detail("Левая задняя дверь"),
-            new Detail("Правая задняя дверь"),
-        };
+        private List<Detail> _details;
 
         public Detail DamagedDetail { get; private set; }
 
-        public ClientsCar()
+        public ClientsCar(List<string> detailNames)
         {
+            _details = new List<Detail>();
+            SetDetails(detailNames);
             DamagedDetail = _details[_random.Next(0,_details.Count)];
+        }
+
+        private void SetDetails(List<string> detailNames) 
+        {
+            for (int i = 0; i < detailNames.Count; i++)
+            {
+                _details.Add(new Detail(detailNames[i]));
+            }
         }
 
         public void ShowDamagedDetailInfo() 
